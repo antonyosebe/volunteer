@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f7f4ee;
+  --ink: #1c1915;
+  --forest: #1f4d3a;
+  --leaf: #2f6b4f;
+  --clay: #b85c38;
+  --card: #ffffff;
+  --line: #e4d9c8;
+  --teal: #123c38;
+  --orange: #f26b21;
+  --action: #2f9e6b;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-forest: var(--forest);
+  --color-leaf: var(--leaf);
+  --color-clay: var(--clay);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-teal: var(--teal);
+  --color-orange: var(--orange);
+  --color-action: var(--action);
+  --font-sans: var(--font-geist-sans);
+  --font-script: var(--font-great-vibes);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
