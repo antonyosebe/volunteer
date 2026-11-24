@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { BrandMark } from "@/lib/brand";
 import { apiUrl } from "@/lib/api";
 import { markActivity } from "@/lib/session";
 
@@ -53,14 +54,11 @@ export function LoginScreen() {
       <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-8">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] bg-white shadow-2xl md:grid-cols-2">
           <form onSubmit={onSubmit} className="flex flex-col justify-center px-8 py-10 sm:px-12">
-            <Link href="/" className="mb-8 flex items-center gap-2 text-sm font-semibold text-teal">
-              <span className="grid h-8 min-w-8 place-items-center rounded-full bg-orange px-1.5 text-xs font-semibold tracking-tight text-white" aria-hidden>
-                tra
-              </span>
-              Volunteer
+            <Link href="/" className="mb-8 flex items-center">
+              <BrandMark tone="teal" compact />
             </Link>
-            <h1 className="text-center text-3xl font-semibold text-ink">Log in</h1>
-            <p className="mt-2 text-center text-sm text-ink/60">Enter your email or username and password to continue.</p>
+            <h1 className="text-3xl font-semibold text-ink">Log in</h1>
+            <p className="mt-2 text-sm text-ink/60">Enter your email or username and password to continue.</p>
             <label className="mt-8 grid gap-2 text-sm font-medium">
               Email or username
               <input

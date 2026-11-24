@@ -71,7 +71,7 @@ export default function Page() {
             ))}
           </ol>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/register" className="rounded-full bg-action px-5 py-3 text-sm font-medium text-white hover:bg-action/90">
+            <Link href="/register" className="rounded-full bg-teal px-5 py-3 text-sm font-medium text-white hover:bg-teal/90">
               Register as a volunteer
             </Link>
             <Link href="/register?account=organisation" className="rounded-full border border-teal px-5 py-3 text-sm font-medium text-teal hover:bg-teal hover:text-white">

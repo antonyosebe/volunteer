@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f7f4ee;
+  --paper: #ffffff;
   --ink: #1c1915;
   --forest: #1f4d3a;
   --leaf: #2f6b4f;
   --clay: #b85c38;
   --card: #ffffff;
-  --line: #e4d9c8;
-  --teal: #123c38;
-  --orange: #f26b21;
+  --line: #e6e8eb;
+  --teal: #1286c8;
+  --orange: #8a9198;
   --action: #2f9e6b;
 }
 

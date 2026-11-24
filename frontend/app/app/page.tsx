@@ -129,7 +129,7 @@ export default function Page() {
         </section>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-          <Metric href="/app/applications" label="Applications" value="0" note="None sent yet" color="#123c38" values={monthActivities} />
+          <Metric href="/app/applications" label="Applications" value="0" note="None sent yet" color="var(--teal)" values={monthActivities} />
           <Metric href="/app/activities" label="Activities" value="0" note="None joined yet" color="#f26b21" values={monthActivities} />
         </div>
       </div>
@@ -265,7 +265,7 @@ function AdminOverview() {
           <p className="mt-4 border-t border-white/15 pt-3 text-sm leading-6 text-white/75">{adminDetail(summary, rows, ready)}</p>
         </section>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-          <Metric href="/app/approvals" label="Organisations" value={summary ? String(summary.organisations) : "—"} note={monthNote(organisationWeeks)} color="#123c38" values={organisationWeeks} max={Math.max(1, ...organisationWeeks)} />
+          <Metric href="/app/approvals" label="Organisations" value={summary ? String(summary.organisations) : "—"} note={monthNote(organisationWeeks)} color="var(--teal)" values={organisationWeeks} max={Math.max(1, ...organisationWeeks)} />
           <Metric href="/app/approvals" label="Volunteers" value={summary ? String(summary.volunteers) : "—"} note={monthNote(volunteerWeeks)} color="#f26b21" values={volunteerWeeks} max={Math.max(1, ...volunteerWeeks)} />
         </div>
       </div>
@@ -405,7 +405,7 @@ function OrganisationOverview() {
           </div>
         </section>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-          <Metric href="/app/opportunities" label="Opportunities" value={listed === null ? "—" : String(listed)} note={posted === 1 ? "1 posted" : posted > 1 ? `${posted} posted` : "None posted"} color="#123c38" values={monthActivities} />
+          <Metric href="/app/opportunities" label="Opportunities" value={listed === null ? "—" : String(listed)} note={posted === 1 ? "1 posted" : posted > 1 ? `${posted} posted` : "None posted"} color="var(--teal)" values={monthActivities} />
           <Metric href="/app/applications" label="Applications" value={received === null ? "—" : String(received)} note={receivedNote(receivedWeeks)} color="#f26b21" values={receivedWeeks} max={Math.max(1, ...receivedWeeks)} />
         </div>
       </div>
@@ -551,12 +551,12 @@ function MonthChart({ values, marker, max = 4, label = "Applications this month,
         );
       })}
       {marker !== null && points[marker] ? (
-        <line x1={points[marker].x} x2={points[marker].x} y1={pad.t} y2={baseline} stroke="#123c38" strokeOpacity="0.35" strokeDasharray="4 4" />
+        <line x1={points[marker].x} x2={points[marker].x} y1={pad.t} y2={baseline} stroke="var(--teal)" strokeOpacity="0.35" strokeDasharray="4 4" />
       ) : null}
-      <path d={area} fill="#123c38" fillOpacity="0.08" />
-      <polyline points={line} fill="none" stroke="#123c38" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={area} fill="var(--teal)" fillOpacity="0.08" />
+      <polyline points={line} fill="none" stroke="var(--teal)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       {points.map((point, index) => (
-        <circle key={index} cx={point.x} cy={point.y} r={index === marker ? 5 : 3.5} fill={index === marker ? "#123c38" : "#ffffff"} stroke="#123c38" strokeWidth="2" />
+        <circle key={index} cx={point.x} cy={point.y} r={index === marker ? 5 : 3.5} fill={index === marker ? "var(--teal)" : "#ffffff"} stroke="var(--teal)" strokeWidth="2" />
       ))}
       {points.map((point, index) => (
         <text key={index} x={point.x} y={height - 6} textAnchor="middle" fill="#1c1915" fillOpacity="0.45" fontSize="11">

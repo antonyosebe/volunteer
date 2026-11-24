@@ -10,13 +10,25 @@ namespace Volunteer.Controllers;
 [Route("api/admin")]
 public class SettingsController : ControllerBase
 {
+    private const long MaxLogoBytes = 2 * 1024 * 1024;
+
+    private static readonly Dictionary<string, string> LogoTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["image/jpeg"] = ".jpg",
+        ["image/png"] = ".png",
+        ["image/webp"] = ".webp",
+        ["image/gif"] = ".gif"
+    };
+
     private readonly string _connectionString;
+    private readonly IWebHostEnvironment _environment;
     private readonly PasswordHasher<object> _passwords = new();
 
-    public SettingsController(IConfiguration configuration)
+    public SettingsController(IConfiguration configuration, IWebHostEnvironment environment)
     {
         _connectionString = configuration.GetConnectionString("Database")
             ?? throw new InvalidOperationException("Database connection string is missing.");
+        _environment = environment;
     }
 
     [HttpGet("staff")]
@@ -134,7 +146,28 @@ public class SettingsController : ControllerBase
     {
         var rows = await ReadRows("SELECT * FROM p_listsettings()", reader => (reader.GetString(0), reader.GetString(1)));
         string Value(string key) => rows.FirstOrDefault(row => row.Item1 == key).Item2 ?? "";
-        return Ok(new { siteName = Value("site_name"), supportEmail = Value("support_email"), tagline = Value("tagline") });
+        return Ok(new
+        {
+            siteName = Value("site_name"),
+            supportEmail = Value("support_email"),
+            tagline = Value("tagline"),
+            primaryColor = Value("primary_color"),
+            logoPath = Value("logo_path")
+        });
+    }
+
+    [HttpGet("/api/branding")]
+    public async Task<IActionResult> Branding()
+    {
+        var rows = await ReadRows("SELECT * FROM p_listsettings()", reader => (reader.GetString(0), reader.GetString(1)));
+        string Value(string key) => rows.FirstOrDefault(row => row.Item1 == key).Item2 ?? "";
+        return Ok(new
+        {
+            siteName = Value("site_name"),
+            tagline = Value("tagline"),
+            primaryColor = Value("primary_color"),
+            logoPath = Value("logo_path")
+        });
     }
 
     [HttpPut("settings")]
@@ -145,13 +178,20 @@ public class SettingsController : ControllerBase
             return BadRequest(new { message = "Enter a valid support email." });
         }
 
+        var color = request.PrimaryColor?.Trim().ToLowerInvariant() ?? "";
+        if (color.Length != 7 || !color.StartsWith('#') || !color[1..].All(Uri.IsHexDigit))
+        {
+            return BadRequest(new { message = "Choose a color like #1286c8." });
+        }
+
         try
         {
             await using var connection = await Open();
-            await using var command = new NpgsqlCommand("CALL p_savesettings(@SiteName, @SupportEmail, @Tagline)", connection);
+            await using var command = new NpgsqlCommand("CALL p_savesettings(@SiteName, @SupportEmail, @Tagline, @PrimaryColor)", connection);
             command.Parameters.Add(new NpgsqlParameter("SiteName", NpgsqlDbType.Varchar) { Value = (object?)request.SiteName ?? DBNull.Value });
             command.Parameters.Add(new NpgsqlParameter("SupportEmail", NpgsqlDbType.Varchar) { Value = request.SupportEmail!.Trim() });
             command.Parameters.Add(new NpgsqlParameter("Tagline", NpgsqlDbType.Varchar) { Value = (object?)request.Tagline ?? DBNull.Value });
+            command.Parameters.Add(new NpgsqlParameter("PrimaryColor", NpgsqlDbType.Varchar) { Value = color });
             await command.ExecuteNonQueryAsync();
             await WriteAudit(request.UserId, "update", "settings", request.SiteName ?? "");
             return Ok(new { message = "Settings saved." });
@@ -160,6 +200,83 @@ public class SettingsController : ControllerBase
         {
             return BadRequest(new { message = ex.MessageText });
         }
+    }
+
+    [HttpPost("logo")]
+    [RequestSizeLimit(MaxLogoBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxLogoBytes)]
+    public async Task<IActionResult> SaveLogo(IFormFile? logo, [FromForm] Guid? userId)
+    {
+        if (logo is null || logo.Length == 0)
+        {
+            return BadRequest(new { message = "Choose a logo image." });
+        }
+
+        if (logo.Length > MaxLogoBytes)
+        {
+            return BadRequest(new { message = "That image is larger than 2 MB." });
+        }
+
+        if (!LogoTypes.TryGetValue(logo.ContentType, out var extension))
+        {
+            return BadRequest(new { message = "Choose a JPEG, PNG, WEBP, or GIF image." });
+        }
+
+        var directory = Path.Combine(_environment.ContentRootPath, "uploads", "brand");
+        Directory.CreateDirectory(directory);
+        var fileName = $"logo-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}{extension}";
+        var fullPath = Path.Combine(directory, fileName);
+        var relative = $"brand/{fileName}";
+
+        await using (var stream = System.IO.File.Create(fullPath))
+        {
+            await logo.CopyToAsync(stream);
+        }
+
+        try
+        {
+            await using var connection = await Open();
+            await using var command = new NpgsqlCommand("CALL p_savelogo(@LogoPath)", connection);
+            command.Parameters.Add(new NpgsqlParameter("LogoPath", NpgsqlDbType.Text) { Value = relative });
+            await command.ExecuteNonQueryAsync();
+        }
+        catch
+        {
+            System.IO.File.Delete(fullPath);
+            throw;
+        }
+
+        foreach (var existing in Directory.EnumerateFiles(directory))
+        {
+            if (!string.Equals(existing, fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                System.IO.File.Delete(existing);
+            }
+        }
+
+        await WriteAudit(userId, "update", "logo", relative);
+        return Ok(new { message = "Logo updated.", logoPath = relative });
+    }
+
+    [HttpDelete("logo")]
+    public async Task<IActionResult> RemoveLogo([FromBody] LogoRequest request)
+    {
+        await using var connection = await Open();
+        await using var command = new NpgsqlCommand("CALL p_savelogo(@LogoPath)", connection);
+        command.Parameters.Add(new NpgsqlParameter("LogoPath", NpgsqlDbType.Text) { Value = "" });
+        await command.ExecuteNonQueryAsync();
+
+        var directory = Path.Combine(_environment.ContentRootPath, "uploads", "brand");
+        if (Directory.Exists(directory))
+        {
+            foreach (var existing in Directory.EnumerateFiles(directory))
+            {
+                System.IO.File.Delete(existing);
+            }
+        }
+
+        await WriteAudit(request.UserId, "update", "logo", "built-in");
+        return Ok(new { message = "Using the built-in logo." });
     }
 
     [HttpGet("departments")]
@@ -363,6 +480,12 @@ public sealed class ApplicationSettingsRequest
     public string? SiteName { get; set; }
     public string? SupportEmail { get; set; }
     public string? Tagline { get; set; }
+    public string? PrimaryColor { get; set; }
+    public Guid? UserId { get; set; }
+}
+
+public sealed class LogoRequest
+{
     public Guid? UserId { get; set; }
 }
 

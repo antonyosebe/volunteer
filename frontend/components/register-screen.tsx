@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { BrandMark } from "@/lib/brand";
 import { apiUrl } from "@/lib/api";
 import { markActivity } from "@/lib/session";
 
@@ -66,16 +67,13 @@ export function RegisterScreen({ account }: { account: "volunteer" | "organisati
       <div className="relative flex min-h-screen flex-col px-4 py-8 sm:px-8">
         <div className="mx-auto my-auto grid w-full max-w-5xl overflow-hidden rounded-[2rem] bg-white shadow-2xl md:grid-cols-2">
           <form onSubmit={onSubmit} className="flex flex-col justify-center px-8 py-10 sm:px-12">
-            <Link href="/" className="mb-5 flex items-center gap-2 text-sm font-semibold text-teal">
-              <span className="grid h-8 min-w-8 place-items-center rounded-full bg-orange px-1.5 text-xs font-semibold tracking-tight text-white" aria-hidden>
-                tra
-              </span>
-              Volunteer
+            <Link href="/" className="mb-5 flex items-center">
+              <BrandMark tone="teal" compact />
             </Link>
-            <h1 className="text-center text-3xl font-semibold text-ink">
+            <h1 className="text-3xl font-semibold text-ink">
               {organisation ? "Register an organisation" : "Register as a volunteer"}
             </h1>
-            <p className="mt-2 text-center text-sm text-ink/60">
+            <p className="mt-2 text-sm text-ink/60">
               {organisation
                 ? "Your organisation stays pending until a staff admin approves it."
                 : "You can browse first. An account is required when you sign up for an opportunity."}

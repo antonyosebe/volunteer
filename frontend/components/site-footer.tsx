@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { BrandMark, useBrand } from "@/lib/brand";
 
 const columns = [
   {
@@ -29,23 +32,20 @@ const columns = [
 ];
 
 export function SiteFooter() {
+  const { siteName, tagline } = useBrand();
+
   return (
     <footer className="border-t-4 border-orange bg-teal text-white">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-            <span className="grid h-8 min-w-8 place-items-center rounded-full bg-orange px-1.5 text-xs font-semibold tracking-tight" aria-hidden>
-              tra
-            </span>
-            Volunteer
+          <Link href="/" className="flex items-center">
+            <BrandMark tone="white" />
           </Link>
-          <p className="mt-4 max-w-xs text-sm leading-6 text-white/75">
-            Make a difference wherever you go. Find a local need, or list one for your organisation.
-          </p>
+          <p className="mt-4 max-w-xs text-sm leading-6 text-white/75">{tagline}</p>
         </div>
         {columns.map((column) => (
           <nav key={column.title} aria-label={column.title}>
-            <h2 className="text-sm font-medium uppercase tracking-wide text-orange">{column.title}</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-black">{column.title}</h2>
             <ul className="mt-4 grid gap-2">
               {column.links.map((link) => (
                 <li key={link.href}>
@@ -59,7 +59,7 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-white/10">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-sm text-white/60">© 2026 Volunteer</p>
+        <p className="mx-auto max-w-6xl px-4 py-4 text-sm text-white/60">© 2026 {siteName}</p>
       </div>
     </footer>
   );

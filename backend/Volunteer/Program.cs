@@ -22,7 +22,9 @@ builder.Services.AddSingleton<SessionStore>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.SetIsOriginAllowed(origin =>
+            Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+            && uri.Host is "localhost" or "127.0.0.1")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });

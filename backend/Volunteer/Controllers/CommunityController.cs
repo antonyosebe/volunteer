@@ -98,6 +98,21 @@ public class CommunityController : ControllerBase
         }
     }
 
+    [HttpDelete("{clientId:guid}/{postId:guid}")]
+    public async Task<IActionResult> Delete(Guid clientId, Guid postId)
+    {
+        try
+        {
+            var imagePath = await _users.DeleteCommunityPost(clientId, postId);
+            DeleteStoredPhoto(imagePath);
+            return Ok(new { message = "Post deleted." });
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.NoDataFound)
+        {
+            return NotFound(new { message = ex.MessageText });
+        }
+    }
+
     [HttpGet("{clientId:guid}/comments")]
     public async Task<IActionResult> Comments(Guid clientId)
     {
@@ -146,6 +161,29 @@ public class CommunityController : ControllerBase
             ".gif" => ".gif",
             _ => null
         };
+    }
+
+    private void DeleteStoredPhoto(string? relative)
+    {
+        if (string.IsNullOrWhiteSpace(relative))
+        {
+            return;
+        }
+
+        var normalized = relative.Replace('\\', '/');
+        if (normalized.Contains("..", StringComparison.Ordinal) || Path.IsPathRooted(normalized))
+        {
+            return;
+        }
+
+        var root = Path.GetFullPath(Path.Combine(_environment.ContentRootPath, "uploads"));
+        var full = Path.GetFullPath(Path.Combine(root, normalized));
+        if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        DeletePhoto(full);
     }
 
     private static void DeletePhoto(string? fullPath)

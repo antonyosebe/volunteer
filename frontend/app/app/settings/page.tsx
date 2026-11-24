@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api";
+import { defaultPrimary, logoUrlFor, useBrand } from "@/lib/brand";
 import { useSession } from "@/lib/session";
 
 const sections = [
@@ -21,7 +22,9 @@ type RoleRow = { privilegeId: number; code: string; name: string };
 type NamedRow = { name: string };
 type NoteRow = { code: string; name: string; isEnabled: boolean };
 type AuditRow = { auditId: number; action: string; entityName: string; detail: string; createdAt: string };
-type AppSettings = { siteName: string; supportEmail: string; tagline: string };
+type AppSettings = { siteName: string; supportEmail: string; tagline: string; primaryColor: string; logoPath: string };
+
+const colorChoices = ["#1286c8", "#0b6eae", "#1c4e80", "#123c38", "#1f4d3a"];
 
 export default function Page() {
   const session = useSession();
@@ -189,15 +192,21 @@ function Roles({ actor }: { actor?: string }) {
 }
 
 function Application({ actor }: { actor?: string }) {
+  const brand = useBrand();
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [color, setColor] = useState(defaultPrimary);
   const [message, setMessage] = useState<string | null>(null);
+  const [logoPending, setLogoPending] = useState(false);
 
   useEffect(() => {
     let ignore = false;
     void fetch(`${apiUrl}/api/admin/settings`)
       .then((response) => response.json())
       .then((body: AppSettings) => {
-        if (!ignore && body?.siteName !== undefined) setSettings(body);
+        if (!ignore && body?.siteName !== undefined) {
+          setSettings({ ...body, primaryColor: body.primaryColor || defaultPrimary, logoPath: body.logoPath ?? "" });
+          setColor(body.primaryColor || defaultPrimary);
+        }
       })
       .catch(() => {
         if (!ignore) setMessage("The Volunteer API is not running yet.");
@@ -212,24 +221,113 @@ function Application({ actor }: { actor?: string }) {
     const form = new FormData(event.currentTarget);
     const response = await send("/api/admin/settings", {
       method: "PUT",
-      body: { siteName: form.get("siteName"), supportEmail: form.get("supportEmail"), tagline: form.get("tagline"), userId: actor },
+      body: {
+        siteName: form.get("siteName"),
+        supportEmail: form.get("supportEmail"),
+        tagline: form.get("tagline"),
+        primaryColor: color,
+        userId: actor,
+      },
     });
     setMessage(response.message);
+    if (response.ok) await brand.refresh();
+  }
+
+  async function uploadLogo(file: File) {
+    setLogoPending(true);
+    setMessage(null);
+    try {
+      const data = new FormData();
+      data.append("logo", file);
+      if (actor) data.append("userId", actor);
+      const response = await fetch(`${apiUrl}/api/admin/logo`, { method: "POST", body: data });
+      const body = (await response.json().catch(() => null)) as { message?: string; logoPath?: string } | null;
+      setMessage(body?.message ?? (response.ok ? "Logo updated." : "Could not save the logo."));
+      if (response.ok) {
+        setSettings((current) => (current ? { ...current, logoPath: body?.logoPath ?? current.logoPath } : current));
+        await brand.refresh();
+      }
+    } catch {
+      setMessage("The Volunteer API is not running yet.");
+    } finally {
+      setLogoPending(false);
+    }
+  }
+
+  async function removeLogo() {
+    setLogoPending(true);
+    const response = await send("/api/admin/logo", { method: "DELETE", body: { userId: actor } });
+    setMessage(response.message);
+    if (response.ok) {
+      setSettings((current) => (current ? { ...current, logoPath: "" } : current));
+      await brand.refresh();
+    }
+    setLogoPending(false);
   }
 
   if (!settings) return <p className="text-sm text-ink/55">{message ?? "Reading settings."}</p>;
 
+  const preview = settings.logoPath ? logoUrlFor(settings.logoPath) : brand.logoUrl;
+
   return (
-    <form onSubmit={onSubmit} className="grid gap-2">
-      <h2 className="text-sm font-semibold text-ink">Application settings</h2>
-      <Field name="siteName" label="Site name" defaultValue={settings.siteName} />
-      <Field name="supportEmail" label="Support email" type="email" defaultValue={settings.supportEmail} />
-      <Field name="tagline" label="Tagline" defaultValue={settings.tagline} />
-      <button type="submit" className="w-fit rounded-lg bg-teal px-3 py-2 text-sm font-semibold text-white hover:bg-teal/90">
-        Save settings
-      </button>
+    <div className="grid gap-6">
+      <form onSubmit={onSubmit} className="grid gap-2">
+        <h2 className="text-sm font-semibold text-ink">Application settings</h2>
+        <p className="text-sm text-ink/55">The name, color, and logo apply across the whole site.</p>
+        <Field name="siteName" label="Site name" defaultValue={settings.siteName} />
+        <Field name="supportEmail" label="Support email" type="email" defaultValue={settings.supportEmail} />
+        <Field name="tagline" label="Tagline" defaultValue={settings.tagline} />
+        <div className="grid gap-2">
+          <span className="text-xs text-ink/55">Primary color</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {colorChoices.map((choice) => (
+              <button
+                key={choice}
+                type="button"
+                aria-label={choice}
+                aria-pressed={color.toLowerCase() === choice}
+                onClick={() => setColor(choice)}
+                className={`h-8 w-8 rounded-full border-2 ${color.toLowerCase() === choice ? "border-ink" : "border-transparent"}`}
+                style={{ backgroundColor: choice }}
+              />
+            ))}
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input type="color" value={color} aria-label="Custom primary color" onChange={(event) => setColor(event.target.value)} className="h-8 w-10 cursor-pointer rounded border border-line bg-white" />
+              <span className="font-mono text-xs">{color}</span>
+            </label>
+          </div>
+        </div>
+        <button type="submit" className="w-fit rounded-lg bg-teal px-3 py-2 text-sm font-semibold text-white hover:bg-teal/90">
+          Save settings
+        </button>
+      </form>
+      <div className="grid gap-2 border-t border-line pt-4">
+        <h2 className="text-sm font-semibold text-ink">Logo</h2>
+        <img src={preview} alt="" className="h-16 w-16 rounded-lg border border-line bg-white object-contain" />
+        <div className="flex flex-wrap gap-2">
+          <label className="cursor-pointer rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-teal/5">
+            {logoPending ? "Saving logo" : "Upload logo"}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="sr-only"
+              disabled={logoPending}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void uploadLogo(file);
+              }}
+            />
+          </label>
+          {settings.logoPath ? (
+            <button type="button" onClick={() => void removeLogo()} disabled={logoPending} className="rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-teal/5 disabled:opacity-60">
+              Use the built-in logo
+            </button>
+          ) : null}
+        </div>
+      </div>
       <Note message={message} />
-    </form>
+    </div>
   );
 }
 

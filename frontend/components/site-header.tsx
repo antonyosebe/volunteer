@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BrandMark } from "@/lib/brand";
 
 const links = [
   { href: "/", label: "Home" },
@@ -16,11 +17,8 @@ export function SiteHeader() {
   return (
     <header className="relative z-30 bg-teal text-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <span className="grid h-8 min-w-8 place-items-center rounded-full bg-orange px-1.5 text-xs font-semibold tracking-tight" aria-hidden>
-            tra
-          </span>
-          Volunteer
+        <Link href="/" className="flex items-center">
+          <BrandMark tone="white" />
         </Link>
         <button
           type="button"

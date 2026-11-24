@@ -43,16 +43,15 @@ export default function Home() {
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-teal/90 via-teal/65 to-teal/25" />
-        <div className="pointer-events-none absolute -right-20 -top-24 hidden h-64 w-64 rounded-full bg-orange sm:block" aria-hidden />
-        <div className="relative mx-auto flex min-h-[620px] max-w-3xl flex-col items-center justify-center px-4 pb-24 text-center">
+        <div className="relative z-10 mx-auto flex min-h-[620px] max-w-3xl flex-col items-center justify-center px-4 pb-24 text-center">
           <h1 className="text-4xl font-semibold leading-tight sm:text-6xl">
-            Make a <span className="font-script text-5xl text-orange sm:text-7xl">difference</span> wherever you go.
+            Make a <span className="font-script text-5xl text-black sm:text-7xl">difference</span> wherever you go.
           </h1>
           <p className="mt-4 max-w-xl text-base text-white/90 sm:text-lg">
             Discover local organisations and sign up for volunteer opportunities, whether you live there or you are passing through.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/opportunities" className="rounded-full bg-action px-5 py-3 text-sm font-medium text-white hover:bg-action/90">
+            <Link href="/opportunities" className="rounded-full bg-teal px-5 py-3 text-sm font-medium text-white hover:bg-teal/90">
               Discover opportunities
             </Link>
             <Link href="/register?account=organisation" className="rounded-full border border-white px-5 py-3 text-sm font-medium hover:bg-white/10">
@@ -72,7 +71,7 @@ export default function Home() {
               </span>
               <h2 className="mt-4 text-xl font-semibold text-teal">{action.title}</h2>
               <p className="mt-2 text-sm leading-6 text-ink/75">{action.text}</p>
-              <Link href={action.href} className="mt-4 inline-block text-sm font-medium text-action">
+              <Link href={action.href} className="mt-4 inline-block text-sm font-medium text-black">
                 {action.label}
               </Link>
             </li>
@@ -96,7 +95,7 @@ export default function Home() {
         <div>
           <p className="text-sm font-medium uppercase tracking-wide text-orange">Why Volunteer</p>
           <h2 className="mt-2 text-3xl font-semibold leading-tight text-teal sm:text-4xl">
-            Your time <span className="font-script text-4xl text-orange sm:text-5xl">helps</span> people where you are.
+            Your time <span className="font-script text-4xl text-black sm:text-5xl">helps</span> people where you are.
           </h2>
           <ul className="mt-6 grid gap-3">
             {checks.map((check) => (
@@ -108,7 +107,7 @@ export default function Home() {
               </li>
             ))}
           </ul>
-          <Link href="/about" className="mt-8 inline-block rounded-full bg-action px-5 py-3 text-sm font-medium text-white hover:bg-action/90">
+          <Link href="/about" className="mt-8 inline-block rounded-full bg-teal px-5 py-3 text-sm font-medium text-white hover:bg-teal/90">
             Discover more
           </Link>
         </div>

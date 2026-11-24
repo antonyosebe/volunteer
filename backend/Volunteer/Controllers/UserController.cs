@@ -393,6 +393,17 @@ public class UserController
         return id is Guid postId ? postId : Guid.Empty;
     }
 
+    public async Task<string?> DeleteCommunityPost(Guid clientId, Guid postId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand("SELECT p_deletecommunitypost(@ClientID, @PostID)", connection);
+        command.Parameters.Add(new NpgsqlParameter("ClientID", NpgsqlDbType.Uuid) { Value = clientId });
+        command.Parameters.Add(new NpgsqlParameter("PostID", NpgsqlDbType.Uuid) { Value = postId });
+        var imagePath = await command.ExecuteScalarAsync();
+        return imagePath is string path ? path : null;
+    }
+
     public async Task<List<CommunityPost>> ListCommunityPosts(Guid viewerId)
     {
         await using var connection = new NpgsqlConnection(_connectionString);

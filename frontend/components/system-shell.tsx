@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { BrandMark } from "@/lib/brand";
 import { endSession, initials, roleLabel, useSession } from "@/lib/session";
 
 const volunteerLinks = [
@@ -57,11 +58,8 @@ function Workspace({ children, path }: { children: React.ReactNode; path: string
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-paper md:flex-row">
         <aside className="flex max-h-[46vh] shrink-0 flex-col overflow-y-auto border-b border-line bg-white md:max-h-none md:w-60 md:border-r md:border-b-0">
-          <Link href="/app" className="flex items-center gap-2 px-5 py-5">
-            <span className="grid h-9 min-w-9 place-items-center rounded-full bg-orange px-1.5 text-xs font-semibold tracking-tight text-white">
-              tra
-            </span>
-            <span className="text-sm font-semibold text-ink">Volunteer</span>
+          <Link href="/app" className="flex items-center px-5 py-5">
+            <BrandMark compact />
           </Link>
           <nav aria-label="Workspace" className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible md:pb-0">
             {links.map((link) => {
